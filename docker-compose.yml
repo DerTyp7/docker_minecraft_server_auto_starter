@@ -10,32 +10,51 @@ networks:
 
 services:
   auto_starter:
+    container_name: mc_auto_starter
     build: .
     ports:
       - 25565:25565
       - 25566:25566
     environment:
+      PLACEHOLDER_SERVER_SLEEPING_IP: "172.20.0.3"
       PORT_IP_MAP: |
-        25565: 172.20.0.3
-        25566: 172.20.0.4
+        25565: 172.20.0.5
+        25566: 172.20.0.6
     networks:
       mc_network:
         ipv4_address: 172.20.0.2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  mc_placeholder_server:
+    container_name: mc_placeholder_server
+    image: itzg/minecraft-server
+    environment:
+      type: "PAPER"
+      EULA: "TRUE"
+      MOTD: "Sleeping | Join & Wait to wake up"
+      MAX_PLAYERS: "0"
+      MAX_MEMORY: "500M"
+      INIT_MEMORY: "100M"
+    networks:
+      mc_network:
+        ipv4_address: 172.20.0.3
+
   mc:
+    container_name: example_mc_server_1
     image: itzg/minecraft-server
     environment:
       type: "PAPER"
       EULA: "TRUE"
       MOTD: "TEST1"
+      MAX_PLAYERS: "0"
       #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
       #! SERVER_PORT default is "25565"
     networks:
       mc_network:
-        ipv4_address: 172.20.0.3
+        ipv4_address: 172.20.0.5
   mc2:
+    container_name: example_mc_server_2
     image: itzg/minecraft-server
     environment:
       type: "PAPER"
@@ -45,4 +64,4 @@ services:
       #! SERVER_PORT default is "25565"
     networks:
       mc_network:
-        ipv4_address: 172.20.0.4
+        ipv4_address: 172.20.0.6

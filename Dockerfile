@@ -3,6 +3,7 @@ FROM nginx:1.25.3
 
 ENV PORT_IP_MAP ""
 ENV PYTHONUNBUFFERED=1
+ENV PLACEHOLDER_SERVER_SLEEPING_IP ""
 
 # Install Python and pip
 RUN apt-get update && apt-get install -y python3 python3-pip python3-venv 

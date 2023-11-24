@@ -32,13 +32,6 @@ class DockerHandler:
         containers = self.client.containers.list(all=True)
 
         for container in containers:
-            print('current network: {}'.format(self.current_network))
-            print('checking container {}'.format(container.name))
-            print('container networks: {}'.format(
-                container.attrs['NetworkSettings']['Networks']))
-            print('container ip: {}'.format(
-                container.attrs['NetworkSettings']['Networks'][self.current_network]['IPAMConfig']['IPv4Address']))
-
             networks = container.attrs['NetworkSettings']['Networks']
             if self.current_network in networks and networks[self.current_network]['IPAMConfig']['IPv4Address'] == ip:
                 print('found docker container {} with ip {} in network {}'.format(
