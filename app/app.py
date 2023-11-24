@@ -5,12 +5,14 @@ from nginxHandler import NginxHandler
 
 
 def main():
+    port_ip_map = docker_container_mapping()
+
     # Create a DockerHandler instance
     docker_handler = DockerHandler(
-        'unix://var/run/docker.sock', docker_container_mapping())
+        'unix://var/run/docker.sock', port_ip_map)
 
     # Create a RequestHandler instance for each port
-    for port in range(25560, 25571):
+    for port in port_ip_map.keys():
         request_handler = RequestHandler(port, docker_handler)
         request_handler.start()
 
