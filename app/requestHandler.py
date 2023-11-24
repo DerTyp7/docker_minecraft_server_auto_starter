@@ -68,6 +68,9 @@ class RequestHandler(threading.Thread):
                 print('Container is starting. Using starting placeholder IP')
                 ip = os.environ.get('PLACEHOLDER_SERVER_STARTING_IP')
 
+            if not ip:
+                print('No placeholder server IP found')
+                return
             server_socket.connect(
                 (ip, 25565))
             server_socket.sendall(request)

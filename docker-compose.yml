@@ -1,7 +1,7 @@
 version: "3.9"
 
 networks:
-  # You need to have a network with static ips for the servers.
+  # You need to have a network with static ips for the servers
   mc_network:
     driver: bridge
     ipam:
@@ -25,7 +25,7 @@ services:
       # Port mapping for the servers
       # The key is the external port of the placeholder server
       # The value is the internal ip of the actual server
-      # Don't change the server port in the actual server. Use this instead.
+      # Don't change the server port in the actual server. Use this instead
       PORT_IP_MAP: |
         25565: 172.20.0.5
         25566: 172.20.0.6
