@@ -30,6 +30,8 @@ services:
       type: "PAPER"
       EULA: "TRUE"
       MOTD: "TEST1"
+      #! Dont change SERVER_PORT. Use PORT_IP_MAP in minecraft_server_auto_starter instead.
+      #! SERVER_PORT default is "25565"
     networks:
       mc_network:
         ipv4_address: 172.20.0.3
@@ -39,7 +41,8 @@ services:
       type: "PAPER"
       EULA: "TRUE"
       MOTD: "TEST2"
-      SERVER_PORT: "25566"
+      #! Dont change SERVER_PORT. Use PORT_IP_MAP in minecraft_server_auto_starter instead.
+      #! SERVER_PORT default is "25565"
     networks:
       mc_network:
         ipv4_address: 172.20.0.4

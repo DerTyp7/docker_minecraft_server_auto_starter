@@ -34,8 +34,8 @@ class NginxHandler:
 
         for port in port_ip_map:
             nginx_conf.write('    upstream upstream_{} {{\n'.format(port))
-            nginx_conf.write('        server {}:{};\n'.format(
-                port_ip_map[port], port))
+            nginx_conf.write('        server {}:25565;\n'.format(
+                port_ip_map[port]))
             nginx_conf.write(
                 '        server 127.0.0.1:{} backup;\n'.format(port))
             nginx_conf.write('    }\n')
