@@ -50,7 +50,7 @@ class RequestHandler(threading.Thread):
             print('starting docker container {}'.format(container_ip))
             self.docker_handler.get_container_by_ip(container_ip).start()
             # Send a response
-            self.connection.sendall(b'Request handled')
+            self.connection.sendall("Server starting...".encode('utf-8'))
         else:
             print('no docker container mapped to this port')
 
