@@ -1,5 +1,4 @@
 import os
-import time
 
 
 class NginxHandler:
@@ -34,27 +33,25 @@ class NginxHandler:
         nginx_conf.write('events { }\n')
         nginx_conf.write('stream {\n')
 
+        # This looks confusing, but the nginx.conf looks good when it's done
+        # Example for the nginx-example.conf file is in the repo root directory
         for port in port_ip_map:
-            nginx_conf.write('    upstream upstream_{} {{\n'.format(port))
-            nginx_conf.write('        server {}:25565;\n'.format(
-                port_ip_map[port]))
-            nginx_conf.write(
-                '        server 127.0.0.1:{} backup;\n'.format(port))
-
+            nginx_conf.write(f'    upstream upstream_{port} {{\n')
+            nginx_conf.write(f'        server {port_ip_map[port]}:25565;\n')
+            nginx_conf.write(f'        server 127.0.0.1:{port} backup;\n')
             nginx_conf.write('    }\n')
 
             nginx_conf.write('    server {\n')
-            nginx_conf.write('        listen {}:{};\n'.format(
-                current_container_ip, port))
+            nginx_conf.write(
+                f'        listen {current_container_ip}:{port};\n')
 
-            nginx_conf.write('        proxy_connect_timeout {};\n'.format(
-                proxy_timeout))
-            nginx_conf.write('        proxy_timeout {};\n'.format(
-                proxy_timeout))
+            nginx_conf.write(
+                f'        proxy_connect_timeout {proxy_timeout};\n')
+            nginx_conf.write(f'        proxy_timeout {proxy_timeout};\n')
 
-            nginx_conf.write('        proxy_pass upstream_{};\n'.format(port))
+            nginx_conf.write(f'        proxy_pass upstream_{port};\n')
             nginx_conf.write('    }\n')
         nginx_conf.write('}\n')
         nginx_conf.close()
-        print('NGINX config file setup')
+        print('NGINX config file setup complete')
         self.start()

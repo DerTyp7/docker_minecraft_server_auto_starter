@@ -4,6 +4,8 @@ import os
 
 class DockerHandler:
     def __init__(self, base_url, port_ip_map):
+        print(
+            f'initializing docker handler with base url {base_url} and port ip map {port_ip_map}')
         self.base_url = base_url
         self.client = docker.DockerClient(base_url=base_url)
         self.port_ip_map = port_ip_map
@@ -27,20 +29,17 @@ class DockerHandler:
         return current_network
 
     def get_container_by_ip(self, ip):
-        print('getting docker container by ip {} in network {}'.format(
-            ip, self.current_network))
         containers = self.client.containers.list(all=True)
 
         for container in containers:
             networks = container.attrs['NetworkSettings']['Networks']
             if self.current_network in networks and networks[self.current_network]['IPAMConfig']['IPv4Address'] == ip:
-                print('found docker container {} with ip {} in network {}'.format(
-                    container.name, ip, self.current_network))
+                print(
+                    f'Found container {container.name} with ip {ip} in network {self.current_network}')
                 return container
-        print('no docker container found with ip {} in network {}'.format(
-            ip, self.current_network))
+        print(
+            f'No docker container found with ip {ip} in network {self.current_network}')
         return None
 
     def is_container_starting(self, container):
-        print(container.attrs['State']['Health']['Status'])
         return container.attrs['State']['Health']['Status'] == 'starting'
