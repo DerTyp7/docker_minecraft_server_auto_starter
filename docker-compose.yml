@@ -1,6 +1,7 @@
 version: "3.9"
 
 networks:
+  # You need to have a network with static ips for the servers.
   mc_network:
     driver: bridge
     ipam:
@@ -16,9 +17,14 @@ services:
       - 25565:25565
       - 25566:25566
     environment:
+      # The ip of the placeholder servers below
       PLACEHOLDER_SERVER_SLEEPING_IP: "172.20.0.3"
       PLACEHOLDER_SERVER_STARTING_IP: "172.20.0.4"
 
+      # Port mapping for the servers
+      # The key is the external port of the placeholder server
+      # The value is the internal ip of the actual server
+      # Don't change the server port in the actual server. Use this instead.
       PORT_IP_MAP: |
         25565: 172.20.0.5
         25566: 172.20.0.6
@@ -28,6 +34,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
+  # These are the placeholder servers. They are used to show the player a message
+  # They are not needed, but they are nice to have
+  # Keep in mind these servers are consuming some resources
   mc_placeholder_server_sleeping:
     container_name: mc_placeholder_server_sleeping
     image: itzg/minecraft-server
@@ -56,6 +65,7 @@ services:
       mc_network:
         ipv4_address: 172.20.0.4
 
+  # These are the actual servers
   mc:
     container_name: example_mc_server_1
     image: itzg/minecraft-server
@@ -64,6 +74,8 @@ services:
       EULA: "TRUE"
       MOTD: "TEST1"
       MAX_PLAYERS: "0"
+
+      # Enable autostop, so the auto_starter makes sense
       ENABLE_AUTOSTOP: "TRUE"
       AUTOSTOP_TIMEOUT_EST: "30"
       AAUTOSTOP_TIMEOUT_INIT: "10"
@@ -79,11 +91,13 @@ services:
       type: "PAPER"
       EULA: "TRUE"
       MOTD: "TEST2"
+
+      # Enable autostop, so the auto_starter makes sense
       ENABLE_AUTOSTOP: "TRUE"
       AUTOSTOP_TIMEOUT_EST: "30"
       AAUTOSTOP_TIMEOUT_INIT: "10"
-      #! Dont change SERVER_PORT. Use PORT_IP_MAP in minecraft_server_auto_starter instead.
-      #! SERVER_PORT default is "25565"
+      #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
+      # SERVER_PORT default is "25565"
     networks:
       mc_network:
         ipv4_address: 172.20.0.6
