@@ -24,6 +24,7 @@ class NginxHandler:
             print(f.read())
 
     def setup_config_file(self, port_ip_map, current_container_ip):
+        proxy_timeout = "300ms"
         self.stop()
         print('Setting up NGINX config file...')
         print('port_ip_map: {}'.format(port_ip_map))
@@ -43,6 +44,12 @@ class NginxHandler:
             nginx_conf.write('    server {\n')
             nginx_conf.write('        listen {}:{};\n'.format(
                 current_container_ip, port))
+
+            nginx_conf.write('        proxy_connect_timeout {};\n'.format(
+                proxy_timeout))
+            nginx_conf.write('        proxy_timeout {};\n'.format(
+                proxy_timeout))
+
             nginx_conf.write('        proxy_pass upstream_{};\n'.format(port))
             nginx_conf.write('    }\n')
         nginx_conf.write('}\n')

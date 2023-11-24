@@ -9,7 +9,7 @@ networks:
         - subnet: 172.20.0.0/16
 
 services:
-  minecraft_server_auto_starter:
+  auto_starter:
     build: .
     ports:
       - 25565:25565
@@ -30,7 +30,7 @@ services:
       type: "PAPER"
       EULA: "TRUE"
       MOTD: "TEST1"
-      #! Dont change SERVER_PORT. Use PORT_IP_MAP in minecraft_server_auto_starter instead.
+      #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
       #! SERVER_PORT default is "25565"
     networks:
       mc_network:
