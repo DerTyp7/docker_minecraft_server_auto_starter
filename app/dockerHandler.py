@@ -40,3 +40,7 @@ class DockerHandler:
         print('no docker container found with ip {} in network {}'.format(
             ip, self.current_network))
         return None
+
+    def is_container_starting(self, container):
+        print(container.attrs['State']['Health']['Status'])
+        return container.attrs['State']['Health']['Status'] == 'starting'

@@ -25,7 +25,6 @@ class NginxHandler:
             print(f.read())
 
     def setup_config_file(self, port_ip_map, current_container_ip):
-        placeholder_ip = os.environ.get('PLACEHOLDER_SERVER_SLEEPING_IP')
         proxy_timeout = "5s"
         self.stop()
         print('Setting up NGINX config file...')
@@ -41,9 +40,6 @@ class NginxHandler:
                 port_ip_map[port]))
             nginx_conf.write(
                 '        server 127.0.0.1:{} backup;\n'.format(port))
-
-            nginx_conf.write(
-                '        server {}:25565 backup;\n'.format(placeholder_ip))
 
             nginx_conf.write('    }\n')
 

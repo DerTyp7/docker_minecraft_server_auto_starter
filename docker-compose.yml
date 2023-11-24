@@ -17,6 +17,8 @@ services:
       - 25566:25566
     environment:
       PLACEHOLDER_SERVER_SLEEPING_IP: "172.20.0.3"
+      PLACEHOLDER_SERVER_STARTING_IP: "172.20.0.4"
+
       PORT_IP_MAP: |
         25565: 172.20.0.5
         25566: 172.20.0.6
@@ -26,8 +28,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
-  mc_placeholder_server:
-    container_name: mc_placeholder_server
+  mc_placeholder_server_sleeping:
+    container_name: mc_placeholder_server_sleeping
     image: itzg/minecraft-server
     environment:
       type: "PAPER"
@@ -40,6 +42,20 @@ services:
       mc_network:
         ipv4_address: 172.20.0.3
 
+  mc_placeholder_server_starting:
+    container_name: mc_placeholder_server_starting
+    image: itzg/minecraft-server
+    environment:
+      type: "PAPER"
+      EULA: "TRUE"
+      MOTD: "Starting..."
+      MAX_PLAYERS: "0"
+      MAX_MEMORY: "500M"
+      INIT_MEMORY: "100M"
+    networks:
+      mc_network:
+        ipv4_address: 172.20.0.4
+
   mc:
     container_name: example_mc_server_1
     image: itzg/minecraft-server
@@ -48,6 +64,9 @@ services:
       EULA: "TRUE"
       MOTD: "TEST1"
       MAX_PLAYERS: "0"
+      ENABLE_AUTOSTOP: "TRUE"
+      AUTOSTOP_TIMEOUT_EST: "30"
+      AAUTOSTOP_TIMEOUT_INIT: "10"
       #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
       #! SERVER_PORT default is "25565"
     networks:
@@ -60,6 +79,9 @@ services:
       type: "PAPER"
       EULA: "TRUE"
       MOTD: "TEST2"
+      ENABLE_AUTOSTOP: "TRUE"
+      AUTOSTOP_TIMEOUT_EST: "30"
+      AAUTOSTOP_TIMEOUT_INIT: "10"
       #! Dont change SERVER_PORT. Use PORT_IP_MAP in minecraft_server_auto_starter instead.
       #! SERVER_PORT default is "25565"
     networks:

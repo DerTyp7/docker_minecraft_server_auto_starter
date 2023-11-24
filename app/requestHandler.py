@@ -1,4 +1,4 @@
-import json
+import os
 import socket
 import threading
 from utils import docker_container_mapping
@@ -32,27 +32,39 @@ class RequestHandler(threading.Thread):
         print('handling request on port {}'.format(self.port))
         container_ip = docker_container_mapping().get(str(self.port))
         if container_ip:
+            container = self.docker_handler.get_container_by_ip(
+                container_ip)
+            isStarting = self.docker_handler.is_container_starting(container)
             request = self.connection.recv(1024)
-            print('---------------------------')
-            print(request)
-            print('---------------------------')
-
             if request[0] == 0x10:
                 if b'\x01' in request:
                     print('ping')
-                    self.redirect_to_placeholder()
+                    self.forward_request_to_server(request, isStarting)
                 elif b'\x02' in request:
                     print('join')
-                    print('starting docker container {}'.format(container_ip))
-                    self.docker_handler.get_container_by_ip(
-                        container_ip).start()
+                    if isStarting:
+                        print('container is starting, waiting for 5 seconds')
+                        self.forward_request_to_server(request, isStarting)
+                    else:
+                        print('starting docker container {}'.format(container_ip))
+                        container.start()
 
             elif request[0] == 0xFE:
                 print('legacy server list ping')
-                self.redirect_to_placeholder()
+                self.forward_request_to_server(request, isStarting)
 
             else:
                 print('no docker container mapped to this port')
 
-    def redirect_to_placeholder(self):
-        print('redirecting to placeholder')
+    def forward_request_to_server(self, request, isStarting=False):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+            ip = os.environ.get('PLACEHOLDER_SERVER_SLEEPING_IP')
+            if isStarting:
+                print('----------------container is starting, waiting for 5 seconds')
+                ip = os.environ.get('PLACEHOLDER_SERVER_STARTING_IP')
+
+            server_socket.connect(
+                (ip, 25565))
+            server_socket.sendall(request)
+            response = server_socket.recv(1024)
+            self.connection.sendall(response)
