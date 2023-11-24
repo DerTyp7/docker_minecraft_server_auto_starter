@@ -13,7 +13,7 @@ services:
   auto_starter:
     container_name: mc_auto_starter
     restart: always
-    build: .
+    image: dertyp7/minecraft_server_auto_starter:latest
     ports:
       - 25565:25565
       - 25566:25566
