@@ -17,13 +17,18 @@ class RequestHandler(threading.Thread):
 
     def run(self):
         while True:
-            print(f'Waiting for a connection on port {self.port}')
-            self.connection, self.client_address = self.sock.accept()
             try:
-                print('Connection from', self.client_address)
-                self.handle_request()
-            finally:
-                self.connection.close()
+                print(f'Waiting for a connection on port {self.port}')
+                self.connection, self.client_address = self.sock.accept()
+                try:
+                    print('Connection from', self.client_address)
+                    self.handle_request()
+                finally:
+                    self.connection.close()
+            except Exception as e:
+                print(f'Error in request handler for port {self.port}: {e}')
+                print('Restarting request handler...')
+                self.__init__(self.port, self.docker_handler)
 
     def handle_request(self):
         print(f'Handling request on port {self.port}')
@@ -36,25 +41,26 @@ class RequestHandler(threading.Thread):
             if request[0] == 0x10:
                 if b'\x01' in request:
                     print(f'Detected ping request for {container_ip}')
-                    self.forward_request_to_server(request, isStarting)
+                    self.forward_request_to_placeholder(request, isStarting)
                 elif b'\x02' in request:
                     print(f'Detected join/login request for {container_ip}')
                     if isStarting:
                         print(
                             f'Container {container_ip} is already starting...')
-                        self.forward_request_to_server(request, isStarting)
+                        self.forward_request_to_placeholder(
+                            request, isStarting)
                     else:
                         print(f'Starting container {container_ip}')
                         container.start()
 
             elif request[0] == 0xFE:
                 print(f'Detected legacy ping request for {container_ip}')
-                self.forward_request_to_server(request, isStarting)
+                self.forward_request_to_placeholder(request, isStarting)
 
             else:
                 print(f'No container mapped to port {self.port}')
 
-    def forward_request_to_server(self, request, isStarting=False):
+    def forward_request_to_placeholder(self, request, isStarting=False):
         print('Forwarding request to placeholder server')
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             ip = os.environ.get('PLACEHOLDER_SERVER_SLEEPING_IP')

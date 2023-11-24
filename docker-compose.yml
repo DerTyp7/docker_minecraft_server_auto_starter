@@ -12,6 +12,7 @@ networks:
 services:
   auto_starter:
     container_name: mc_auto_starter
+    restart: always
     build: .
     ports:
       - 25565:25565
@@ -39,46 +40,72 @@ services:
   # Keep in mind these servers are consuming some resources
   mc_placeholder_server_sleeping:
     container_name: mc_placeholder_server_sleeping
-    image: itzg/minecraft-server
+    restart: always
+    image: itzg/minecraft-server:java8
     environment:
-      type: "PAPER"
+      VERSION: "1.12.2"
       EULA: "TRUE"
-      MOTD: "Sleeping | Join & Wait to wake up"
+      MOTD: "Sleeping | Join to wake up"
+
+      # The placeholder servers should be as lightweight as possible
       MAX_PLAYERS: "0"
-      MAX_MEMORY: "500M"
-      INIT_MEMORY: "100M"
+      MAX_MEMORY: "512M"
+      INIT_MEMORY: "512M"
+      LEVEL_TYPE: "FLAT"
+      JVM_XX_OPTS: "-XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCompressedOops"
+      VIEW_DISTANCE: "1"
+      SPAWN_ANIMALS: "false"
+      SPAWN_MONSTERS: "false"
+      SNOOPER_ENABLED: "false"
+      GENERATE_STRUCTURES: "false"
+      ALLOW_NETHER: "false"
+      ALLOW_END: "false"
     networks:
       mc_network:
         ipv4_address: 172.20.0.3
 
   mc_placeholder_server_starting:
     container_name: mc_placeholder_server_starting
-    image: itzg/minecraft-server
+    restart: always
+    image: itzg/minecraft-server:java8
     environment:
-      type: "PAPER"
+      VERSION: "1.12.2"
       EULA: "TRUE"
-      MOTD: "Starting..."
+      MOTD: "Starting, please wait..."
+
+      # The placeholder servers should be as lightweight as possible
       MAX_PLAYERS: "0"
-      MAX_MEMORY: "500M"
-      INIT_MEMORY: "100M"
+      MAX_MEMORY: "512M"
+      INIT_MEMORY: "512M"
+      LEVEL_TYPE: "FLAT"
+      JVM_XX_OPTS: "-XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCompressedOops"
+      VIEW_DISTANCE: "1"
+      SPAWN_ANIMALS: "false"
+      SPAWN_MONSTERS: "false"
+      SNOOPER_ENABLED: "false"
+      GENERATE_STRUCTURES: "false"
+      ALLOW_NETHER: "false"
+      ALLOW_END: "false"
     networks:
       mc_network:
         ipv4_address: 172.20.0.4
 
   # These are the actual servers
+  # For itzg/minecraft-server you can find the documentation here: https://docker-minecraft-server.readthedocs.io/en/latest/variables/
   mc:
     container_name: example_mc_server_1
     image: itzg/minecraft-server
+    restart: no #! This is important. If you restart the server automatically, the auto_starter will not work
     environment:
       type: "PAPER"
       EULA: "TRUE"
-      MOTD: "TEST1"
-      MAX_PLAYERS: "0"
+      MOTD: "Example Server 1"
+      MAX_PLAYERS: "1"
 
       # Enable autostop, so the auto_starter makes sense
       ENABLE_AUTOSTOP: "TRUE"
-      AUTOSTOP_TIMEOUT_EST: "30"
-      AAUTOSTOP_TIMEOUT_INIT: "10"
+      AUTOSTOP_TIMEOUT_EST: "10"
+      AUTOSTOP_TIMEOUT_INIT: "10"
       #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
       #! SERVER_PORT default is "25565"
     networks:
@@ -87,15 +114,17 @@ services:
   mc2:
     container_name: example_mc_server_2
     image: itzg/minecraft-server
+    restart: no #! This is important. If you restart the server automatically, the auto_starter will not work
     environment:
       type: "PAPER"
       EULA: "TRUE"
-      MOTD: "TEST2"
+      MOTD: "Example Server 2"
+      MAX_PLAYERS: "1"
 
       # Enable autostop, so the auto_starter makes sense
       ENABLE_AUTOSTOP: "TRUE"
-      AUTOSTOP_TIMEOUT_EST: "30"
-      AAUTOSTOP_TIMEOUT_INIT: "10"
+      AUTOSTOP_TIMEOUT_EST: "10"
+      AUTOSTOP_TIMEOUT_INIT: "10"
       #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
       # SERVER_PORT default is "25565"
     networks:
