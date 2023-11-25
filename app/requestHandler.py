@@ -51,7 +51,7 @@ class RequestHandler(threading.Thread):
             isStarting = self.docker_handler.is_container_starting(container)
             request = self.connection.recv(1024)
             print(f'Received request: {request}')
-            if request[0] == 0x10 or request[0] == 0x15:
+            if request[0] == 0x10 or request[0] == 0x15 or request[0] == 0x1b:
                 if b'\x01' in request:
                     print(f'Detected ping request for {container_ip}')
                     self.forward_request_to_placeholder(request, isStarting)
