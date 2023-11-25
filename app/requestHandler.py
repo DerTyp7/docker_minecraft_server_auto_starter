@@ -51,11 +51,9 @@ class RequestHandler(threading.Thread):
             isStarting = self.docker_handler.is_container_starting(container)
             request = self.connection.recv(1024)
             print(f'Received request: {request}')
+            # b'\x1b\x00\xfb\x05\x14mc.tealfire.de\x00FML3\x00c\xa0\x02\x1a\x00\x07DerTyp7\x01\xf2]\x9a\x18*\xeaJ\xed\xbe0g\x9c\x8aT\xa9t'
             if request[0] == 0x10 or request[0] == 0x15 or request[0] == 0x1b:
-                if b'\x01' in request:
-                    print(f'Detected ping request for {container_ip}')
-                    self.forward_request_to_placeholder(request, isStarting)
-                elif b'\x02' in request:
+                if b'\x02' in request:
                     print(f'Detected join/login request for {container_ip}')
                     if isStarting:
                         print(
@@ -65,6 +63,9 @@ class RequestHandler(threading.Thread):
                     else:
                         print(f'Starting container {container_ip}')
                         container.start()
+                elif b'\x01' in request:
+                    print(f'Detected ping request for {container_ip}')
+                    self.forward_request_to_placeholder(request, isStarting)
 
             elif request[0] == 0xFE:
                 print(f'Detected legacy ping request for {container_ip}')
