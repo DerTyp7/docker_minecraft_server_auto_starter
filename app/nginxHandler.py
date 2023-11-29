@@ -30,7 +30,11 @@ class NginxHandler:
         print('port_ip_map: {}'.format(port_ip_map))
         nginx_conf = open(self.config_path, 'w+')
         nginx_conf.truncate()
-        nginx_conf.write('events { }\n')
+        nginx_conf.write('worker_processes 5;\n')
+        nginx_conf.write('events { \n')
+        nginx_conf.write('    worker_connections 1024;\n')
+        nginx_conf.write('    multi_accept on;\n')
+        nginx_conf.write('}\n')
         nginx_conf.write('stream {\n')
 
         # This looks confusing, but the nginx.conf looks good when it's done
