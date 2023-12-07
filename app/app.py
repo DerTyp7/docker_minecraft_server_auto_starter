@@ -2,7 +2,6 @@ from requestHandler import RequestHandler
 from utils import docker_container_mapping
 from dockerHandler import DockerHandler
 from nginxHandler import NginxHandler
-import time
 
 
 def main():
