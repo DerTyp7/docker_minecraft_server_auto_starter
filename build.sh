@@ -1,0 +1,1 @@
+docker build -t dertyp7/minecraft_server_auto_starter:latest .

@@ -1,4 +1,5 @@
 import os
+import logging
 
 
 class NginxHandler:
@@ -6,14 +7,14 @@ class NginxHandler:
         self.config_path = config_path
 
     def start(self):
-        print('Starting NGINX...')
+        logging.info('Starting NGINX...')
         os.system('nginx > /dev/null 2>&1 &')
-        print('NGINX started')
+        logging.info('NGINX started')
 
     def stop(self):
-        print('Stopping NGINX...')
+        logging.info('Stopping NGINX...')
         os.system('nginx -s stop')
-        print('NGINX stopped')
+        logging.info('NGINX stopped')
 
     def restart(self):
         self.stop()
@@ -21,13 +22,13 @@ class NginxHandler:
 
     def print_config(self):
         with open(self.config_path, 'r') as f:
-            print(f.read())
+            logging.info(f.read())
 
     def setup_config_file(self, port_ip_map, current_container_ip):
         proxy_timeout = "5s"
         self.stop()
-        print('Setting up NGINX config file...')
-        print('port_ip_map: {}'.format(port_ip_map))
+        logging.info('Setting up NGINX config file...')
+        logging.info('port_ip_map: {}'.format(port_ip_map))
         nginx_conf = open(self.config_path, 'w+')
         nginx_conf.truncate()
         nginx_conf.write('worker_processes 5;\n')
@@ -57,5 +58,5 @@ class NginxHandler:
             nginx_conf.write('    }\n')
         nginx_conf.write('}\n')
         nginx_conf.close()
-        print('NGINX config file setup complete')
+        logging.info('NGINX config file setup complete')
         self.start()
