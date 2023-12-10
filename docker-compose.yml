@@ -1,14 +1,5 @@
 version: "3.9"
 
-networks:
-  # You need to have a network with static ips for the servers
-  mc_network:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.20.0.0/16
-
 services:
   auto_starter:
     container_name: mc_auto_starter
@@ -19,19 +10,16 @@ services:
       - 25566:25566
     environment:
       # The ip of the placeholder servers below
-      PLACEHOLDER_SERVER_SLEEPING_IP: "172.20.0.3"
-      PLACEHOLDER_SERVER_STARTING_IP: "172.20.0.4"
+      PLACEHOLDER_SERVER_SLEEPING_SERVICE: "mc_placeholder_server_sleeping"
+      PLACEHOLDER_SERVER_STARTING_SERVICE: "mc_placeholder_server_starting"
 
       # Port mapping for the servers
       # The key is the external port of the placeholder server
       # The value is the internal ip of the actual server
       # Don't change the server port in the actual server. Use this instead
-      PORT_IP_MAP: |
-        25565: 172.20.0.5
-        25566: 172.20.0.6
-    networks:
-      mc_network:
-        ipv4_address: 172.20.0.2
+      PORT_MAP: |
+        25565: "mc"
+        25566: "mc2"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -60,15 +48,37 @@ services:
       GENERATE_STRUCTURES: "false"
       ALLOW_NETHER: "false"
       ALLOW_END: "false"
-    networks:
-      mc_network:
-        ipv4_address: 172.20.0.3
 
   mc_placeholder_server_starting:
     container_name: mc_placeholder_server_starting
     restart: always
     image: itzg/minecraft-server:java8
     environment:
+      EULA: "TRUE"
+      MOTD: "Starting, please wait..."
+
+      # The placeholder servers should be as lightweight as possible
+      MAX_PLAYERS: "0"
+      MAX_MEMORY: "512M"
+      INIT_MEMORY: "512M"
+      LEVEL_TYPE: "FLAT"
+      JVM_XX_OPTS: "-XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCompressedOops"
+      VIEW_DISTANCE: "1"
+      SPAWN_ANIMALS: "false"
+      SPAWN_MONSTERS: "false"
+      SNOOPER_ENABLED: "false"
+      GENERATE_STRUCTURES: "false"
+      ALLOW_NETHER: "false"
+      ALLOW_END: "false"
+
+  # These are the actual servers
+  # For itzg/minecraft-server you can find the documentation here: https://docker-minecraft-server.readthedocs.io/en/latest/variables/
+  mc:
+    container_name: example_mc_server_1
+    image: itzg/minecraft-server
+    restart: no #! This is important. If you restart the server automatically, the auto_starter will not work
+    environment:
+      type: "PAPER"
       VERSION: "1.12.2"
       EULA: "TRUE"
       MOTD: "Starting, please wait..."
@@ -86,31 +96,7 @@ services:
       GENERATE_STRUCTURES: "false"
       ALLOW_NETHER: "false"
       ALLOW_END: "false"
-    networks:
-      mc_network:
-        ipv4_address: 172.20.0.4
 
-  # These are the actual servers
-  # For itzg/minecraft-server you can find the documentation here: https://docker-minecraft-server.readthedocs.io/en/latest/variables/
-  mc:
-    container_name: example_mc_server_1
-    image: itzg/minecraft-server
-    restart: no #! This is important. If you restart the server automatically, the auto_starter will not work
-    environment:
-      type: "PAPER"
-      EULA: "TRUE"
-      MOTD: "Example Server 1"
-      MAX_PLAYERS: "1"
-
-      # Enable autostop, so the auto_starter makes sense
-      ENABLE_AUTOSTOP: "TRUE"
-      AUTOSTOP_TIMEOUT_EST: "10"
-      AUTOSTOP_TIMEOUT_INIT: "10"
-      #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
-      #! SERVER_PORT default is "25565"
-    networks:
-      mc_network:
-        ipv4_address: 172.20.0.5
   mc2:
     container_name: example_mc_server_2
     image: itzg/minecraft-server
@@ -122,11 +108,8 @@ services:
       MAX_PLAYERS: "1"
 
       # Enable autostop, so the auto_starter makes sense
-      ENABLE_AUTOSTOP: "TRUE"
+      ENABLE_AUTOSTOP: "FALSE"
       AUTOSTOP_TIMEOUT_EST: "10"
       AUTOSTOP_TIMEOUT_INIT: "10"
       #! Dont change SERVER_PORT. Use PORT_IP_MAP in auto_starter instead.
       # SERVER_PORT default is "25565"
-    networks:
-      mc_network:
-        ipv4_address: 172.20.0.6

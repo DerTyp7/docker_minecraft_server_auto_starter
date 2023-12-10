@@ -47,7 +47,8 @@ class RequestHandler(threading.Thread):
 
     def handle_request(self):
         logging.info(f'Handling request on port {self.port}')
-        container_ip = docker_container_mapping().get(str(self.port))
+        container_ip = self.docker_handler.get_ip_by_dns_name(
+            docker_container_mapping().get(str(self.port)))
         if container_ip:
             container = self.docker_handler.get_container_by_ip(
                 container_ip)
@@ -85,11 +86,13 @@ class RequestHandler(threading.Thread):
     def forward_request_to_placeholder(self, request, isStarting=False):
         logging.info('Forwarding request to placeholder server')
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            ip = os.environ.get('PLACEHOLDER_SERVER_SLEEPING_IP')
+            ip = self.docker_handler.get_ip_by_dns_name(
+                os.environ.get('PLACEHOLDER_SERVER_SLEEPING_SERVICE'))
             if isStarting:
                 logging.info(
                     'Container is starting. Using starting placeholder IP')
-                ip = os.environ.get('PLACEHOLDER_SERVER_STARTING_IP')
+                ip = self.docker_handler.get_ip_by_dns_name(
+                    os.environ.get('PLACEHOLDER_SERVER_STARTING_SERVICE'))
 
             if not ip:
                 logging.info('No placeholder server IP found')

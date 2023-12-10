@@ -24,11 +24,16 @@ class NginxHandler:
         with open(self.config_path, 'r') as f:
             logging.info(f.read())
 
-    def setup_config_file(self, port_ip_map, current_container_ip):
+    def setup_config_file(self, port_map, current_container_ip, docker_handler):
+        print(f'-------------------> {port_map}')
+        if port_map is None:
+            logging.error('port_map is None')
+            return
+
         proxy_timeout = "5s"
         self.stop()
         logging.info('Setting up NGINX config file...')
-        logging.info('port_ip_map: {}'.format(port_ip_map))
+        logging.info('port_map: {}'.format(port_map))
         nginx_conf = open(self.config_path, 'w+')
         nginx_conf.truncate()
         nginx_conf.write('worker_processes 5;\n')
@@ -40,22 +45,30 @@ class NginxHandler:
 
         # This looks confusing, but the nginx.conf looks good when it's done
         # Example for the nginx-example.conf file is in the repo root directory
-        for port in port_ip_map:
-            nginx_conf.write(f'    upstream upstream_{port} {{\n')
-            nginx_conf.write(f'        server {port_ip_map[port]}:25565;\n')
-            nginx_conf.write(f'        server 127.0.0.1:{port} backup;\n')
-            nginx_conf.write('    }\n')
+        if isinstance(port_map, dict):
+            for port in port_map:
+                print(f'-------------------> {port_map}')
+                ip = docker_handler.get_ip_by_dns_name(port_map[port])
+                print(f'-------------------> {port_map[port]}, {ip}')
 
-            nginx_conf.write('    server {\n')
-            nginx_conf.write(
-                f'        listen {current_container_ip}:{port};\n')
+                nginx_conf.write(f'    upstream upstream_{port} {{\n')
+                nginx_conf.write(f'        server {ip}:25565;\n')
+                nginx_conf.write(f'        server 127.0.0.1:{port} backup;\n')
+                nginx_conf.write('    }\n')
 
-            nginx_conf.write(
-                f'        proxy_connect_timeout {proxy_timeout};\n')
-            nginx_conf.write(f'        proxy_timeout {proxy_timeout};\n')
+                nginx_conf.write('    server {\n')
+                nginx_conf.write(
+                    f'        listen {current_container_ip}:{port};\n')
 
-            nginx_conf.write(f'        proxy_pass upstream_{port};\n')
-            nginx_conf.write('    }\n')
+                nginx_conf.write(
+                    f'        proxy_connect_timeout {proxy_timeout};\n')
+                nginx_conf.write(f'        proxy_timeout {proxy_timeout};\n')
+
+                nginx_conf.write(f'        proxy_pass upstream_{port};\n')
+                nginx_conf.write('    }\n')
+        else:
+            logging.error('port_map is not a dictionary')
+
         nginx_conf.write('}\n')
         nginx_conf.close()
         logging.info('NGINX config file setup complete')
