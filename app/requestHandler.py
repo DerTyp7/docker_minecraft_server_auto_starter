@@ -29,7 +29,7 @@ class RequestHandler(threading.Thread):
                 logging.info(f'Waiting for a connection on port {self.port}')
                 self.connection, self.client_address = self.sock.accept()
                 try:
-                    logging.info('Connection from', self.client_address)
+                    logging.info(f'Connection from {self.client_address}')
                     self.handle_request()
                 except Exception as e:
                     logging.info(
@@ -47,8 +47,11 @@ class RequestHandler(threading.Thread):
 
     def handle_request(self):
         logging.info(f'Handling request on port {self.port}')
+        print(docker_container_mapping().get(str(self.port)))
         container_ip = self.docker_handler.get_ip_by_dns_name(
             docker_container_mapping().get(str(self.port)))
+        print(f"----Container IP: {container_ip}")
+
         if container_ip:
             container = self.docker_handler.get_container_by_ip(
                 container_ip)

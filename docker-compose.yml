@@ -54,6 +54,7 @@ services:
     restart: always
     image: itzg/minecraft-server:java8
     environment:
+      VERSION: "1.12.2"
       EULA: "TRUE"
       MOTD: "Starting, please wait..."
 

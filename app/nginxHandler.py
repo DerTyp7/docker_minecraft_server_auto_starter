@@ -25,7 +25,6 @@ class NginxHandler:
             logging.info(f.read())
 
     def setup_config_file(self, port_map, current_container_ip, docker_handler):
-        print(f'-------------------> {port_map}')
         if port_map is None:
             logging.error('port_map is None')
             return
@@ -47,9 +46,7 @@ class NginxHandler:
         # Example for the nginx-example.conf file is in the repo root directory
         if isinstance(port_map, dict):
             for port in port_map:
-                print(f'-------------------> {port_map}')
                 ip = docker_handler.get_ip_by_dns_name(port_map[port])
-                print(f'-------------------> {port_map[port]}, {ip}')
 
                 nginx_conf.write(f'    upstream upstream_{port} {{\n')
                 nginx_conf.write(f'        server {ip}:25565;\n')

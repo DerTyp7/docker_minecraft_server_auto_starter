@@ -18,14 +18,11 @@ def main():
 
         # Create an NginxHandler instance
         nginx_handler = NginxHandler('/etc/nginx/nginx.conf')
-        print(1)
         docker_handler.get_ip_by_dns_name(
             docker_handler.get_current_container_name())
-        print(2)
 
         nginx_handler.setup_config_file(
             port_map, docker_handler.get_ip_by_dns_name(docker_handler.get_current_container_name()), docker_handler)
-        print(3)
 
         nginx_handler.print_config()
 

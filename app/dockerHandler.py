@@ -19,15 +19,13 @@ class DockerHandler:
     def get_current_container(self):
         hostname = self.get_current_container_name()
         if hostname:
-            return self.get_container_by_name(hostname)
+            return self.client.containers.get(hostname)
         return None
 
     def get_current_container_name(self):
-        # Get container name from environment variable
         return os.environ.get('HOSTNAME')
 
     def get_current_network(self):
-        # Get network of current container
         current_container = self.get_current_container()
         if current_container:
             networks = current_container.attrs['NetworkSettings']['Networks']
@@ -43,20 +41,13 @@ class DockerHandler:
 
         for container in containers:
             networks = container.attrs['NetworkSettings']['Networks']
-            if self.current_network in networks and networks[self.current_network]['IPAMConfig']['IPv4Address'] == ip:
+            if self.current_network in networks and networks[self.current_network]['IPAddress'] == ip:
                 logging.info(
                     f'Found container {container.name} with ip {ip} in network {self.current_network}')
                 return container
         logging.info(
             f'No docker container found with ip {ip} in network {self.current_network}')
         return None
-
-    def get_container_by_name(self, name):
-        try:
-            return self.client.containers.get(name)
-        except docker.errors.NotFound:
-            logging.error(f'Container {name} not found')
-            return None
 
     def is_container_starting(self, container):
         if container:
@@ -87,12 +78,6 @@ class DockerHandler:
             return None
 
     def get_ip_by_dns_name(self, dns_name):
-        for container in self.client.containers.list(all=True):
-            networks = container.attrs['NetworkSettings']['Networks']
-            if self.current_network in networks:
-                logging.info(
-                    f'Container {container.name} ip: {networks[self.current_network]["IPAddress"]}, dns name: {networks[self.current_network]["Aliases"]}')
-
         try:
             containers = self.client.containers.list(
                 all=True, filters={"network": self.current_network})
@@ -100,13 +85,13 @@ class DockerHandler:
             if containers is None:
                 logging.info('No containers found')
                 return None
-
             for container in containers:
                 networks = container.attrs['NetworkSettings']['Networks']
                 if self.current_network in networks and dns_name in networks[self.current_network]['Aliases']:
+                    ip = networks[self.current_network]['IPAddress']
                     logging.info(
-                        f'Found container {container.name} with dns name {dns_name} in network {self.current_network}')
-                    return networks[self.current_network]['IPAddress']
+                        f'Found container {container.name} with dns name {dns_name} with ip {ip} in network {self.current_network}')
+                    return ip
             logging.info(
                 f'No docker container found with dns name {dns_name} in network {self.current_network}')
             return None

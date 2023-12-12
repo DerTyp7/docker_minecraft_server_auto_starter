@@ -1,19 +1,23 @@
 import logging
 import os
 import socket
-import socket
 
 
 def docker_container_mapping():
-    port_ip_map_str = os.environ.get('PORT_MAP')
-    # Convert the environment variable to a Python dictionary
-    port_ip_map = {}
-    for line in port_ip_map_str.split('\n'):
-        if line:  # ignore empty lines
-            port, ip = line.split(':')
-            port_ip_map[port.strip()] = ip.strip()
+    port_map_str = os.environ.get('PORT_MAP')
 
-    return port_ip_map
+    port_map = {}
+    for line in port_map_str.split('\n'):
+        if line:
+            port, name = line.split(':')
+            port_map[port.strip()] = name.strip().replace(
+                "'", "").replace('"', "").strip()
+
+    # print port map for debugging
+    logging.info('PORT_MAP:')
+    for port in port_map:
+        logging.info(f'{port} -> {port_map[port]}')
+    return port_map
 
 
 def get_ip_by_dns_name(dns_name):
