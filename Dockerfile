@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
 RUN python3 -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 
-# Copy the Python app files to the container
-COPY app/* /app/
+ADD app/ /app/
 
 # Set the working directory
 WORKDIR /app

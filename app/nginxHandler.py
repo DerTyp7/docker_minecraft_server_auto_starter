@@ -1,39 +1,49 @@
 import os
 import logging
+from typing import TextIO, Dict
+
+from dockerHandler import DockerHandler
 
 
 class NginxHandler:
-    def __init__(self, config_path):
-        self.config_path = config_path
+    def __init__(self, config_path: str):
+        logging.info('[NginxHandler] initializing nginx handler...')
+        self.config_path: str = config_path
 
-    def start(self):
-        logging.info('Starting NGINX...')
+    def start(self) -> None:
+        logging.info('[NginxHandler] starting nginx...')
         os.system('nginx > /dev/null 2>&1 &')
-        logging.info('NGINX started')
+        logging.info('[NginxHandler] nginx started')
 
-    def stop(self):
-        logging.info('Stopping NGINX...')
+    def stop(self) -> None:
+        logging.info('[NginxHandler] stopping nginx...')
         os.system('nginx -s stop')
-        logging.info('NGINX stopped')
+        logging.info('[NginxHandler] nginx stopped')
 
-    def restart(self):
+    def restart(self) -> None:
         self.stop()
         self.start()
 
-    def print_config(self):
+    def print_config(self) -> None:
+        logging.info('[NginxHandler] printing nginx config file...')
+        logging.info('========================================')
         with open(self.config_path, 'r') as f:
             logging.info(f.read())
+        logging.info('========================================')
+        logging.info('[NginxHandler] nginx config file printed')
 
-    def setup_config_file(self, port_map, current_container_ip, docker_handler):
+    def update_config_file(self, docker_handler: DockerHandler) -> None:
+        logging.info('[NginxHandler] updating nginx config file...')
+        self.stop()
+        port_map: Dict[str, str] = docker_handler.get_port_map()
         if port_map is None:
-            logging.error('port_map is None')
+            logging.error('[NginxHandler] port_map is None')
             return
 
-        proxy_timeout = "5s"
-        self.stop()
-        logging.info('Setting up NGINX config file...')
-        logging.info('port_map: {}'.format(port_map))
-        nginx_conf = open(self.config_path, 'w+')
+        proxy_timeout: str = "5s"
+        logging.info('[NginxHandler] setting up NGINX config file...')
+        logging.info('[NginxHandler] port_map: {}'.format(port_map))
+        nginx_conf: TextIO = open(self.config_path, 'w+')
         nginx_conf.truncate()
         nginx_conf.write('worker_processes 5;\n')
         nginx_conf.write('events { \n')
@@ -46,16 +56,23 @@ class NginxHandler:
         # Example for the nginx-example.conf file is in the repo root directory
         if isinstance(port_map, dict):
             for port in port_map:
-                ip = docker_handler.get_ip_by_dns_name(port_map[port])
+                ip = docker_handler.get_ip_by_service_name(port_map[port])
 
+                nginx_conf.write(
+                    f'    # docker service {port_map[port]} on port {port}\n')
                 nginx_conf.write(f'    upstream upstream_{port} {{\n')
-                nginx_conf.write(f'        server {ip}:25565;\n')
-                nginx_conf.write(f'        server 127.0.0.1:{port} backup;\n')
+
+                if ip == "":
+                    nginx_conf.write(f'        server 127.0.0.1:{port};\n')
+                else:
+                    nginx_conf.write(f'        server {ip}:25565;\n')
+                    nginx_conf.write(
+                        f'        server 127.0.0.1:{port} backup;\n')
                 nginx_conf.write('    }\n')
 
                 nginx_conf.write('    server {\n')
                 nginx_conf.write(
-                    f'        listen {current_container_ip}:{port};\n')
+                    f'        listen {docker_handler.get_auto_starter_container_ip()}:{port};\n')
 
                 nginx_conf.write(
                     f'        proxy_connect_timeout {proxy_timeout};\n')
@@ -68,5 +85,8 @@ class NginxHandler:
 
         nginx_conf.write('}\n')
         nginx_conf.close()
-        logging.info('NGINX config file setup complete')
+        logging.info('[NginxHandler] nginx config file setup complete')
         self.start()
+
+        # Restart for good measure. Add inconsistency issues with nginx
+        self.restart()

@@ -1,50 +1,52 @@
-import logging
-
-from requestHandler import RequestHandler
-from utils import docker_container_mapping
+from math import log
+import time
 from dockerHandler import DockerHandler
 from nginxHandler import NginxHandler
+from minecraftServerHandler import MinecraftServerHandler
+from requestHandler import RequestHandler
+import logging
+
 
 logging.basicConfig(level=logging.INFO)
 
 
-def main():
+def main() -> None:
     try:
-        port_map = docker_container_mapping()
+        logging.info('[INIT] initializing auto starter...')
+        logging.info('[INIT] initializing docker handler...')
+        docker_handler: DockerHandler = DockerHandler(
+            'unix://var/run/docker.sock')
+        logging.info('[INIT] docker handler initialized')
 
-        # Create a DockerHandler instance
-        docker_handler = DockerHandler(
-            'unix://var/run/docker.sock', port_map)
+        logging.info('[INIT] initializing nginx handler...')
+        nginx_handler: NginxHandler = NginxHandler('/etc/nginx/nginx.conf')
 
-        # Create an NginxHandler instance
-        nginx_handler = NginxHandler('/etc/nginx/nginx.conf')
-        docker_handler.get_ip_by_dns_name(
-            docker_handler.get_current_container_name())
+        nginx_handler.update_config_file(
+            docker_handler)
 
-        nginx_handler.setup_config_file(
-            port_map, docker_handler.get_ip_by_dns_name(docker_handler.get_current_container_name()), docker_handler)
+        logging.info('[INIT] nginx handler initialized')
 
-        nginx_handler.print_config()
+        logging.info('[INIT] initializing minecraft server handler...')
+        minecraft_server_handler: MinecraftServerHandler = MinecraftServerHandler(
+            docker_handler, nginx_handler)
 
+        # Find all Minecraft servers and add them to the MinecraftServerHandler instance
+        for service_name in docker_handler.get_port_map().values():
+            minecraft_server_handler.add_server(service_name)
+
+        logging.info('[INIT] wait 10 seconds before stopping all servers...')
+        time.sleep(10)
+        minecraft_server_handler.stop_all_servers()
+        logging.info('[INIT] minecraft server handler initialized')
+
+        logging.info('[INIT] initializing request handlers...')
         # Create a RequestHandler instance for each port
-        for port in port_map.keys():
-            logging.info(f'Creating request handler for port {port}')
-            request_handler = RequestHandler(int(port), docker_handler)
+        for port in docker_handler.get_port_map().keys():
+            logging.info(f'[INIT] creating request handler for port {port}')
+            request_handler: RequestHandler = RequestHandler(
+                int(port), docker_handler, minecraft_server_handler)
             request_handler.start()
-
-        # DEBUG
-        logging.info(
-            '-----------------------------DEBUG--------------------------------')
-        logging.info(
-            f'Current container: {docker_handler.get_current_container_name()}')
-        logging.info(
-            f'Current container ip: {docker_handler.get_ip_by_dns_name(docker_handler.get_current_container_name())}')
-        logging.info(
-            f'Current network: {docker_handler.get_current_network()}')
-
-        docker_handler.print_all_container_names()
-        logging.info(
-            '-----------------------------DEBUG END--------------------------------')
+        logging.info('[INIT] request handlers initialized')
 
     except Exception as e:
         logging.error(f'An error occurred: {e}')
