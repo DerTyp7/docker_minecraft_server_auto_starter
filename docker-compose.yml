@@ -77,7 +77,7 @@ services:
   mc:
     container_name: example_mc_server_1
     image: itzg/minecraft-server
-    restart: unless-stopped #! This is important. If you restart the server automatically, the auto_starter will not work
+    restart: unless-stopped #! This is important. If you restart the server always automatically, the auto_starter will not work
     environment:
       type: "PAPER"
       EULA: "TRUE"
@@ -89,7 +89,7 @@ services:
   mc2:
     container_name: example_mc_server_2
     image: itzg/minecraft-server
-    restart: unless-stopped #! This is important. If you restart the server automatically, the auto_starter will not work
+    restart: unless-stopped #! This is important. If you restart the server always automatically, the auto_starter will not work
     environment:
       type: "PAPER"
       EULA: "TRUE"

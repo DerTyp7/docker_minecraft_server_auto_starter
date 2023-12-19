@@ -34,8 +34,8 @@ def main() -> None:
         for service_name in docker_handler.get_port_map().values():
             minecraft_server_handler.add_server(service_name)
 
-        logging.info('[INIT] wait 10 seconds before stopping all servers...')
-        time.sleep(10)
+        logging.info('[INIT] wait 20 seconds before stopping all servers...')
+        time.sleep(20)
         minecraft_server_handler.stop_all_servers()
         logging.info('[INIT] minecraft server handler initialized')
 
