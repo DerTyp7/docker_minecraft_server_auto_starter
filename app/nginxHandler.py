@@ -32,7 +32,7 @@ class NginxHandler:
         logging.info('========================================')
         logging.info('[NginxHandler] nginx config file printed')
 
-    def update_config_file(self, docker_handler: DockerHandler) -> None:
+    def update_config_file(self, docker_handler: DockerHandler, active_service_name: str) -> None:
         logging.info('[NginxHandler] updating nginx config file...')
         self.stop()
         port_map: Dict[str, str] = docker_handler.get_port_map()
@@ -56,15 +56,14 @@ class NginxHandler:
         # Example for the nginx-example.conf file is in the repo root directory
         if isinstance(port_map, dict):
             for port in port_map:
-                ip = docker_handler.get_ip_by_service_name(port_map[port])
-
                 nginx_conf.write(
                     f'    # docker service {port_map[port]} on port {port}\n')
                 nginx_conf.write(f'    upstream upstream_{port} {{\n')
 
-                if ip == "":
+                if port_map[port] != active_service_name:
                     nginx_conf.write(f'        server 127.0.0.1:{port};\n')
                 else:
+                    ip = docker_handler.get_ip_by_service_name(port_map[port])
                     nginx_conf.write(f'        server {ip}:25565;\n')
                     nginx_conf.write(
                         f'        server 127.0.0.1:{port} backup;\n')

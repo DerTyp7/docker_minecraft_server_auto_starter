@@ -13,7 +13,7 @@ class MinecraftServerHandler:
         self.docker_handler: DockerHandler = docker_handler
         self.nginx_handler: NginxHandler = nginx_handler
 
-        self.active_service_name: str | None = None
+        self.active_service_name: str = ""
         logging.info(
             '[MinecraftServerHandler] minecraft server handler initialized')
 
@@ -45,8 +45,9 @@ class MinecraftServerHandler:
             server.start()
             logging.info(
                 f'[MinecraftServerHandler] started server {service_name}')
+            self.active_service_name = service_name
             self.nginx_handler.update_config_file(
-                self.docker_handler)
+                self.docker_handler, self.active_service_name)
             self.nginx_handler.print_config()
         else:
             logging.info(
