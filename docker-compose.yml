@@ -9,10 +9,6 @@ services:
       - 25565:25565
       - 25566:25566
     environment:
-      # The ip of the placeholder servers below
-      PLACEHOLDER_SERVER_SLEEPING_SERVICE: "mc_placeholder_server_sleeping"
-      PLACEHOLDER_SERVER_STARTING_SERVICE: "mc_placeholder_server_starting"
-
       # Port mapping for the servers
       # The key is the external port of the placeholder server
       # The value is the internal ip of the actual server
@@ -22,55 +18,6 @@ services:
         25566: "mc2"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
-  # These are the placeholder servers. They are used to show the player a message
-  # They are not needed, but they are nice to have
-  # Keep in mind these servers are consuming some resources
-  mc_placeholder_server_sleeping:
-    container_name: mc_placeholder_server_sleeping
-    restart: always
-    image: itzg/minecraft-server:java8
-    environment:
-      VERSION: "1.12.2"
-      EULA: "TRUE"
-      MOTD: "Sleeping | Join to wake up"
-
-      # The placeholder servers should be as lightweight as possible
-      MAX_PLAYERS: "0"
-      MAX_MEMORY: "512M"
-      INIT_MEMORY: "512M"
-      LEVEL_TYPE: "FLAT"
-      JVM_XX_OPTS: "-XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCompressedOops"
-      VIEW_DISTANCE: "1"
-      SPAWN_ANIMALS: "false"
-      SPAWN_MONSTERS: "false"
-      SNOOPER_ENABLED: "false"
-      GENERATE_STRUCTURES: "false"
-      ALLOW_NETHER: "false"
-      ALLOW_END: "false"
-
-  mc_placeholder_server_starting:
-    container_name: mc_placeholder_server_starting
-    restart: always
-    image: itzg/minecraft-server:java8
-    environment:
-      VERSION: "1.12.2"
-      EULA: "TRUE"
-      MOTD: "Starting, please wait..."
-
-      # The placeholder servers should be as lightweight as possible
-      MAX_PLAYERS: "0"
-      MAX_MEMORY: "512M"
-      INIT_MEMORY: "512M"
-      LEVEL_TYPE: "FLAT"
-      JVM_XX_OPTS: "-XX:+UseConcMarkSweepGC -XX:+DisableExplicitGC -XX:+UseCompressedOops"
-      VIEW_DISTANCE: "1"
-      SPAWN_ANIMALS: "false"
-      SPAWN_MONSTERS: "false"
-      SNOOPER_ENABLED: "false"
-      GENERATE_STRUCTURES: "false"
-      ALLOW_NETHER: "false"
-      ALLOW_END: "false"
 
   # These are the actual servers
   # For itzg/minecraft-server you can find the documentation here: https://docker-minecraft-server.readthedocs.io/en/latest/variables/

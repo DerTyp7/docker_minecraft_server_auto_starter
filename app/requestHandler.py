@@ -30,7 +30,8 @@ class RequestHandler(threading.Thread):
         logging.info(
             f'[RequestHandler:{self.port}] starting up on {server_address[0]} port {server_address[1]}')
         self.sock.bind(server_address)
-        self.sock.listen(1)
+        self.sock.settimeout(5)
+        self.sock.listen(30)
         logging.info(
             f'[RequestHandler:{self.port}] request handler initialized')
 
@@ -124,23 +125,19 @@ class RequestHandler(threading.Thread):
         logging.info(
             '[RequestHandler:{self.port}] forwarding request to placeholder server')
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            ip = self.docker_handler.get_ip_by_service_name(
-                os.environ.get('PLACEHOLDER_SERVER_SLEEPING_SERVICE'))
-            if minecraft_server.is_starting() == True:
-                logging.info(
-                    '[RequestHandler:{self.port}] container is starting. Using starting placeholder ip')
-                ip = self.docker_handler.get_ip_by_service_name(
-                    os.environ.get('PLACEHOLDER_SERVER_STARTING_SERVICE'))
-
-            if not ip:
-                logging.info(
-                    '[RequestHandler:{self.port}] no placeholder server ip found')
-                return
-
+            ip = "127.0.0.1"
             logging.info(
                 f'[RequestHandler:{self.port}] placeholder server ip: {ip}')
             try:
-                server_socket.connect((ip, 25565))
+                if minecraft_server.is_starting() == True:
+                    logging.info(
+                        '[RequestHandler:{self.port}] container is starting. Using placeholder port 20001')
+                    server_socket.connect((ip, 20001))
+                else:
+                    logging.info(
+                        '[RequestHandler:{self.port}] container is not starting. Using placeholder port 20000')
+                    server_socket.connect((ip, 20000))
+
                 server_socket.sendall(request)
                 response = server_socket.recv(1024)
                 self.connection.sendall(response)

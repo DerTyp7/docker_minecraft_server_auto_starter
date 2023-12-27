@@ -3,11 +3,9 @@ FROM nginx:1.25.3
 
 ENV PORT_MAP ""
 ENV PYTHONUNBUFFERED=1
-ENV PLACEHOLDER_SERVER_SLEEPING_IP ""
-ENV PLACEHOLDER_SERVER_STARTING_IP ""
 
-# Install Python and pip
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv 
+# Install Python, pip and git
+RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
 
 # Create a virtual environment and activate it
 RUN python3 -m venv /app/venv
