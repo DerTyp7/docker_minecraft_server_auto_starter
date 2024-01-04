@@ -1,8 +1,7 @@
 import logging
 import os
-import json
-import json
-from typing import List, Dict
+import struct
+from typing import Dict
 
 
 def docker_container_mapping() -> Dict[str, str]:
@@ -22,29 +21,48 @@ def docker_container_mapping() -> Dict[str, str]:
     return port_map
 
 
-# motd = {
-#     "1": "§4Maintenance!",
-#     "2": "§aCheck example.com for more information!"
-# }
-# version_text = "§4Maintenance"
-# samples = ["§bexample.com", "", "§4Maintenance"]
-# kick_message = ["§bSorry", "", "§aThis server is offline!"]
+def read_varint(byte, i):
+    result = 0
+    bytes = 0
+    while True:
+        byte_in = byte[i]
+        i += 1
+        result |= (byte_in & 0x7F) << (bytes * 7)
+        if bytes > 32:
+            raise IOError("Packet is too long!")
+        if (byte_in & 0x80) != 0x80:
+            return result, i
 
-def generate_placeholder_server_config_file(path: str, ip: str, port: int, motd: Dict[str, str], version_text: str, samples: List[str], kick_message: List[str]) -> None:
-    config = {
-        "ip": ip,
-        "kick_message": kick_message,
-        "motd": motd,
-        "player_max": 0,
-        "player_online": 0,
-        "port": port,
-        "protocol": 2,
-        "samples": samples,
-        "server_icon": "server_icon.png",
-        "show_hostname_if_available": True,
-        "show_ip_if_hostname_available": True,
-        "version_text": version_text
-    }
 
-    with open(path, 'w') as f:
-        json.dump(config, f, indent=4)
+def read_utf(byte, i):
+    (length, i) = read_varint(byte, i)
+    ip = byte[i:(i + length)].decode('utf-8')
+    i += length
+    return ip, i
+
+
+def read_ushort(byte, i):
+    new_i = i + 2
+    return struct.unpack(">H", byte[i:new_i])[0], new_i
+
+
+def read_long(byte, i):
+    new_i = i + 8
+    return struct.unpack(">q", byte[i:new_i]), new_i
+
+
+def write_varint(byte, value):
+    while True:
+        part = value & 0x7F
+        value >>= 7
+        if value != 0:
+            part |= 0x80
+        byte.append(part)
+        if value == 0:
+            break
+
+
+def write_utf(byte, value):
+    write_varint(byte, len(value))
+    for b in value.encode():
+        byte.append(b)

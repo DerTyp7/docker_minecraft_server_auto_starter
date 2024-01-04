@@ -3,5 +3,6 @@
 	"python.analysis.autoImportCompletions": true,
 	"python.analysis.diagnosticSeverityOverrides": {
 		"reportMissingTypeStubs": "none"
-	}
+	},
+	"cSpell.words": ["REUSEADDR", "varint"]
 }
